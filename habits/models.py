@@ -27,7 +27,7 @@ class Habits(models.Model):
         validators=[MaxValueValidator(datetime.time(0, 2, 0))],
     )
     is_public = models.BooleanField(default=False)
-    owner = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    owner = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "привычка"
