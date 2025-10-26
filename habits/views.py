@@ -10,12 +10,17 @@ class HabitsViewSet(ModelViewSet):
     serializer_class = HabitsSerializer
     queryset = Habits.objects.all()
 
+    def get_serializer_context(self):
+        """Добавляем request в контекст сериализатора"""
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
     def perform_create(self, serializer):
         """
-        Метод создание курса.
+        Метод создание привычки - владелец теперь назначается автоматически в сериализаторе
         """
-
-        serializer.save(owner=self.request.user)
+        serializer.save()
 
     def get_permissions(self):
         """
