@@ -14,16 +14,33 @@ def time_habit(habit_id):
     """Отправка уведомления для конкретной привычки"""
     try:
         habit = Habits.objects.get(id=habit_id)
-        print(is_time_to_send_reminder(habit))
-        if habit.owner.tg_id and is_time_to_send_reminder(habit):
+
+        # Проверяем наличие владельца и telegram ID
+        if not habit.owner:
+            print(f"Привычка {habit_id} не имеет владельца")
+            return
+
+        if not habit.owner.tg_id:
+            print(f"Владелец {habit.owner.username} не имеет telegram ID")
+            return
+
+        print(f"Проверка времени для привычки {habit_id}: {is_time_to_send_reminder(habit)}")
+
+        # В задаче Celery тоже используем проверку времени
+        if is_time_to_send_reminder(habit):
             params = {
                 "text": f"Напоминание: {habit.action} в {habit.start_time}",
                 "chat_id": habit.owner.tg_id,
             }
             response = requests.get(f"{TG_URL}{BOT_TOKEN}/sendMessage", params=params)
-            print(response.json())
+            print(f"Ответ Telegram: {response.json()}")
+        else:
+            print(f"Время для привычки {habit_id} не подходит для отправки")
+
+    except Habits.DoesNotExist:
+        print(f"Привычка с id {habit_id} не найдена")
     except Exception as e:
-        print(f"Ошибка при отправке уведомления: {e}")
+        print(f"Ошибка при отправке уведомления для привычки {habit_id}: {e}")
 
 
 def setup_habit_tasks():
