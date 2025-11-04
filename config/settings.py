@@ -34,12 +34,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     "corsheaders",
     "rest_framework_simplejwt",
     "rest_framework",
     "django_filters",
     "drf_spectacular",
     "django_celery_beat",
+
     "users",
     "habits",
 ]

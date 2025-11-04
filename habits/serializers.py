@@ -16,6 +16,8 @@ class HabitsSerializer(ModelSerializer):
         exclude = ["owner"]
 
     def create(self, validated_data):
+        # Автоматически назначаем владельца из запроса
+        validated_data['owner'] = self.context['request'].user
         habit = super().create(validated_data)
         habit.performed_at = timezone.now()
         habit.save()
@@ -24,6 +26,10 @@ class HabitsSerializer(ModelSerializer):
         return habit
 
     def update(self, instance, validated_data):
+        # Убедимся, что владелец не меняется при обновлении
+        if 'owner' in validated_data:
+            del validated_data['owner']
+
         updated_instance = super().update(instance, validated_data)
         updated_instance.performed_at = timezone.now()
         updated_instance.save()
