@@ -94,7 +94,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            cd ~/projects/lms_project
+            cd ~/projects/coursework_5
             git fetch origin
             git checkout feature_2
             git reset --hard origin/feature_2
