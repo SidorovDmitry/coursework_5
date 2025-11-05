@@ -1,43 +1,50 @@
 services:
   db:
     image: postgres:16
+    container_name: postgres_HabitTracker
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    env_file:
-      - ./.env
     environment:
       - POSTGRES_DB=${POSTGRES_DB_NAME}
       - POSTGRES_USER=${POSTGRES_DB_USER}
       - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_DB_USER} -d ${POSTGRES_DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_DB_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
-
+      start_period: 10s
   web:
     build: .
+    container_name: web_HabitTracker
     command: >
       sh -c "
-            echo 'Waiting for database...'
-            sleep 10
-            python manage.py makemigrations
-            python manage.py migrate
-            python manage.py migrate django_celery_beat
-            python manage.py collectstatic --noinput || true
-            gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+        python manage.py makemigrations
+        python manage.py migrate
+        python manage.py migrate django_celery_beat
+        python manage.py collectstatic --noinput || true
+        gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/code
       - static_volume:/app/staticfiles/
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     env_file:
       - ./.env
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/docs/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   nginx:
     image: nginx:alpine
+    container_name: nginx_HabitTracker
     ports:
       - "80:80"
     volumes:
@@ -45,28 +52,34 @@ services:
       - static_volume:/staticfiles
       - media_volume:/media
     depends_on:
-      - web
+      web:
+        condition: service_started
 
   celery_worker:
+    container_name: celery_worker_HabitTracker
     build: .
     command: bash -c "cd /code && celery -A config worker --loglevel=info"
     volumes:
       - .:/code
     depends_on:
-      - db
-      - redis
-      - web
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - ./.env
 
   celery_beat:
+    container_name: celery_beat_HabitTracker
     build: .
     command: bash -c "cd /code && celery -A config beat --loglevel=info"
     volumes:
       - .:/code
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - ./.env
 
@@ -77,10 +90,11 @@ services:
     ports:
       - "6380:6379"
     healthcheck:
-      test: redis-cli ping
+      test: ["CMD-SHELL", "redis-cli -p 6379 ping || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
 
 volumes:
   postgres_data:

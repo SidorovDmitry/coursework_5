@@ -1,0 +1,45 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+.env
+.env.*
+venv/
+.dockerignore
+.git
+.gitignore
+README.md
+static/
+staticfiles/
+media/
+
+# Дополнительные исключения для Python
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Дополнительные исключения для Django
+*.log
+local_settings.py
+db.sqlite3
+
+# Исключения для CI/CD
+.cache
+.coverage
+.pytest_cache/
+.tox/
