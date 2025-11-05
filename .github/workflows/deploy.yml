@@ -97,7 +97,7 @@ jobs:
             cd ~/projects/lms_project
             git fetch origin
             git checkout feature_2
-            git reset --hard origin/feature_35_2
+            git reset --hard origin/feature_2
             docker compose down
             docker compose up -d --build
             docker compose exec -T web python manage.py migrate --noinput
